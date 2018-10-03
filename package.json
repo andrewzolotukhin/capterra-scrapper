@@ -1,0 +1,27 @@
+{
+  "name": "captera-scrapper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrewzolotukhin/captera-scrapper.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/andrewzolotukhin/captera-scrapper/issues"
+  },
+  "homepage": "https://github.com/andrewzolotukhin/captera-scrapper#readme",
+  "dependencies": {
+    "args": "^5.0.0",
+    "cheerio": "^1.0.0-rc.2",
+    "progress": "^2.0.0",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2"
+  }
+}
