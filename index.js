@@ -24,8 +24,8 @@ const createBar = (text, total) => {
 }
 
 const suggestDomains = async companyName => {
-	const json = await request(`${domainSuggestionUrl}${encodeURIComponent(companyName)}`);
 	try {
+		const json = await request(`${domainSuggestionUrl}${encodeURIComponent(companyName)}`);
 		return JSON.parse(json);
 	} catch (e) {
 		return { data: [] }
@@ -39,7 +39,7 @@ const suggestCompaniesDomains = async companiesAndProducts => {
 	for (let i = 0; i < length; i++) {
 		companiesAndProducts[keys[i]].suggestedDomains = await suggestDomains(keys[i]);
 		bar.tick(1);
-		await sleep(100);
+		await sleep(50);
 	}
 };
 
