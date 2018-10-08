@@ -39,7 +39,7 @@ const suggestCompaniesDomains = async companiesAndProducts => {
 	for (let i = 0; i < length; i++) {
 		companiesAndProducts[keys[i]].suggestedDomains = await suggestDomains(keys[i]);
 		bar.tick(1);
-		await sleep(1000);
+		await sleep(100);
 	}
 };
 
