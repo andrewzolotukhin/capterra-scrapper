@@ -3,9 +3,8 @@ const ProgressBar = require('progress');
 const request = require('request-promise');
 const cheerio = require('cheerio');
 const args = require('args');
-const capterraUrl = 'https://www.capterra.com'
-
-
+const capterraUrl = 'https://www.capterra.com';
+const domainSuggestionUrl = 'https://hunter.io/v2/domains-suggestion?query=';
 
 const lines = [];
 
@@ -13,15 +12,39 @@ const sleep = ms => {
 	return new Promise(r => {
 		setTimeout(r, ms);
 	});
-}
+};
 
-const downloadCompaniesAndProducts = async categories => {
-	const bar = new ProgressBar(` downloading companies from ${categories.length} categories [:bar] :rate/cps :percent :etas`, {
+const createBar = (text, total) => {
+	return new ProgressBar(`${text} [:bar] :rate/cps :percent :etas`, {
 		complete: '=',
 		incomplete: ' ',
 		width: 80,
-		total: categories.length
+		total: total
 	});
+}
+
+const suggestDomains = async companyName => {
+	const json = await request(`${domainSuggestionUrl}${encodeURIComponent(companyName)}`);
+	try {
+		return JSON.parse(json);
+	} catch (e) {
+		return { data: [] }
+	}
+};
+
+const suggestCompaniesDomains = async companiesAndProducts => {
+	const keys = Object.keys(companiesAndProducts);
+	const length = keys.length;
+	const bar = createBar(`downloading domains for ${length} companies`, length);
+	for (let i = 0; i < length; i++) {
+		companiesAndProducts[keys[i]].suggestedDomains = await suggestDomains(keys[i]);
+		bar.tick(1);
+		await sleep(1000);
+	}
+};
+
+const downloadCompaniesAndProducts = async categories => {
+	const bar = createBar(`downloading companies from ${categories.length} categories`, categories.length);
 	const companies = {};
 	const addProduct = (name, url, company, category) => {
 		if (!companies[company]) companies[company] = {
@@ -64,7 +87,7 @@ const downloadCompaniesAndProducts = async categories => {
 	return companies;
 };
 
-const readInput = () => {
+const readInput = (mergeLines) => {
 	return new Promise(r => {
 		const rl = readline.createInterface({
 			input: process.stdin
@@ -77,16 +100,28 @@ const readInput = () => {
 		});
 
 		rl.on('close', () => {
-			r(lines);
+			if (mergeLines) {
+				r(lines.join(''));
+			} else {
+				r(lines);
+			}
 		});
 	});
 }
 
-getCompanies = (name, sub, options) => {
+getCompaniesCommand = (name, sub, options) => {
 	readInput().then(categories => {
 		downloadCompaniesAndProducts(categories).then(companies => console.log(JSON.stringify(companies, null, 3)));
 	});
-}
+};
 
-args.command('companies', 'Load companies and their products, reading categories list from STDIN', getCompanies);
+getCompaniesDomainsCommand = (name, sub, options) => {
+	readInput(true).then(companiesAndProductsText => {
+		const companiesAndProducts = JSON.parse(companiesAndProductsText);
+		suggestCompaniesDomains(companiesAndProducts).then(companies => console.log(JSON.stringify(companiesAndProducts, null, 3)));
+	});
+};
+
+args.command('companies', 'Load companies and their products, reading categories list from STDIN', getCompaniesCommand);
+args.command('suggest_domains', 'Suggest domains for downloaded companies', getCompaniesDomainsCommand);
 const flags = args.parse(process.argv);
